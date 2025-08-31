@@ -1,8 +1,7 @@
 ﻿using Google.Apis.Books.v1;
-using static Google.Apis.Requests.BatchRequest;
 
 var service = new BooksService();
-var request = service.Volumes.List($"isbn:4487817331");
+var request = service.Volumes.List($"isbn:4163906185");
 var response = await request.ExecuteAsync();
 if (response.Items is null || response.Items.Count == 0)
 {
@@ -19,3 +18,6 @@ Console.WriteLine($"出版日: {book.PublishedDate}");
 Console.WriteLine($"ジャンル: {string.Join(", ", book.Categories ?? new string[] { })}");
 Console.WriteLine($"説明: {book.Description}");
 Console.WriteLine($"サムネイル: {book.ImageLinks?.Thumbnail}");
+
+var notionClient = new Experience2Notion.NotionClient();
+await notionClient.CreateBookPageAsync(book.Title, string.Join(", ", book.Authors ?? new string[] { }));
