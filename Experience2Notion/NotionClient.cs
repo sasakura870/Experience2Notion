@@ -1,4 +1,6 @@
 ﻿using Experience2Notion.Models;
+using System.Text;
+using System.Text.Json;
 
 namespace Experience2Notion;
 public class NotionClient
@@ -13,7 +15,7 @@ public class NotionClient
         _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {notionApiKey}");
         _client.DefaultRequestHeaders.Add("Notion-Version", "2022-06-28");
 
-        _databaseId = Environment.GetEnvironmentVariable("NOTION_DATABASE_ID") ?? string.Empty;
+        _databaseId = Environment.GetEnvironmentVariable("NOTION_DB_ID") ?? string.Empty;
     }
 
     public async Task CreateBookPageAsync(string title, string author)
@@ -22,9 +24,10 @@ public class NotionClient
         var payload = new NotionPage
         {
             Parent = new Parent { DatabaseId = _databaseId },
+            Icon = new Emoji { Type = "emoji", EmojiChar = "📚" },
             Properties = new Properties
             {
-                Title = new TitleProperty
+                Name = new NameProperty
                 {
                     Title = [
                         new TextObject
@@ -33,20 +36,31 @@ public class NotionClient
                         }
                     ]
                 },
-                Authors = new RichTextProperty
-                {
-                    RichText = [
-                        new TextObject
-                        {
-                            Text = new TextContent { Content = author }
-                        }
-                    ]
-                }
+                //Status = new StatusProperty
+                //{
+                //    Status = new StatusValue
+                //    {
+                //        //Id = 
+                //        Color = "red",
+                //        Name = "未着手",
+
+                //    }
+                //}
+                //Authors = new RichTextProperty
+                //{
+                //    RichText = [
+                //        new TextObject
+                //        {
+                //            Text = new TextContent { Content = author }
+                //        }
+                //    ]
+                //}
             },
         };
-        var jsonPayload = System.Text.Json.JsonSerializer.Serialize(payload);
-        var content = new StringContent(jsonPayload, System.Text.Encoding.UTF8, "application/json");
+        var jsonPayload = JsonSerializer.Serialize(payload);
+        var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
         var response = await _client.PostAsync(url, content);
+        var hoge = await response.Content.ReadAsStringAsync();
         response.EnsureSuccessStatusCode();
     }
 }
