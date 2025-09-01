@@ -20,7 +20,7 @@ public class Properties
 
     [JsonPropertyName("評価")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public SelectProperty Evaluation { get; set; } = new SelectProperty();
+    public SelectProperty? Evaluation { get; set; }
 
     [JsonPropertyName("ステータス")]
     public StatusProperty Status { get; set; } = new StatusProperty();

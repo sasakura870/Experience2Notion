@@ -1,12 +1,17 @@
-﻿using Experience2Notion.Models;
+﻿using Experience2Notion.Models.Notions;
+using Experience2Notion.Models.Notions.Objects;
+using Experience2Notion.Models.Notions.Properties;
 using System.Text;
 using System.Text.Json;
 
 namespace Experience2Notion;
 public class NotionClient
 {
-    HttpClient _client;
-    string _databaseId;
+    readonly HttpClient _client;
+    readonly string _databaseId;
+
+    readonly string _getDbSchmeUrl;
+    readonly string _createPagesUrl = "https://api.notion.com/v1/pages";
 
     public NotionClient()
     {
@@ -16,18 +21,26 @@ public class NotionClient
         _client.DefaultRequestHeaders.Add("Notion-Version", "2022-06-28");
 
         _databaseId = Environment.GetEnvironmentVariable("NOTION_DB_ID") ?? string.Empty;
+        _getDbSchmeUrl = $"https://api.notion.com/v1/databases/{Guid.Parse(_databaseId)}";
+    }
+
+    public async Task LoadProperties()
+    {
+        var response = await _client.GetAsync(_getDbSchmeUrl);
+        var json = await response.Content.ReadAsStringAsync();
+        var dbResponse = JsonSerializer.Deserialize<NotionDatabaseResponse>(json);
+        response.EnsureSuccessStatusCode();
     }
 
     public async Task CreateBookPageAsync(string title, string author)
     {
-        var url = "https://api.notion.com/v1/pages";
-        var payload = new NotionPage
+        var payload = new NotionPageCreate
         {
             Parent = new Parent { DatabaseId = _databaseId },
             Icon = new Emoji { Type = "emoji", EmojiChar = "📚" },
             Properties = new Properties
             {
-                Name = new NameProperty
+                Title = new TitleProperty
                 {
                     Title = [
                         new TextObject
@@ -59,7 +72,7 @@ public class NotionClient
         };
         var jsonPayload = JsonSerializer.Serialize(payload);
         var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-        var response = await _client.PostAsync(url, content);
+        var response = await _client.PostAsync(_createPagesUrl, content);
         var hoge = await response.Content.ReadAsStringAsync();
         response.EnsureSuccessStatusCode();
     }

@@ -20,4 +20,5 @@ Console.WriteLine($"説明: {book.Description}");
 Console.WriteLine($"サムネイル: {book.ImageLinks?.Thumbnail}");
 
 var notionClient = new Experience2Notion.NotionClient();
+await notionClient.LoadProperties();
 await notionClient.CreateBookPageAsync(book.Title, string.Join(", ", book.Authors ?? new string[] { }));
