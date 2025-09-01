@@ -10,6 +10,9 @@ public class PageProperties
     [JsonPropertyName("著者/アーティスト")]
     public MultiSelectValueByPage Authors { get; set; } = new();
 
+    [JsonPropertyName("リンク")]
+    public UrlValueByPage Link { get; set; } = new();
+
     [JsonPropertyName("ステータス")]
     public StatusValueByPage Status { get; set; } = new();
 
@@ -33,4 +36,10 @@ public class StatusValueByPage
 {
     [JsonPropertyName("status")]
     public SelectOption Status { get; set; } = new();
+}
+
+public class UrlValueByPage
+{
+    [JsonPropertyName("url")]
+    public string Url { get; set; } = string.Empty;
 }

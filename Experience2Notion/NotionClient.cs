@@ -44,7 +44,7 @@ public class NotionClient
         _genres = [.. (dbResponse!.Properties[Consts.GenreKey].Select!).Options];
     }
 
-    public async Task CreateBookPageAsync(string title, IList<string> authors)
+    public async Task CreateBookPageAsync(string title, IList<string> authors, string link)
     {
         var bookGenre = _genres.First(g => g.Name == "書籍");
         var authorOptions = authors.Select(author => _authors.FirstOrDefault(a => a.Name == author) ?? new SelectOption { Name = author }).ToList();
@@ -71,6 +71,10 @@ public class NotionClient
                 Authors = new MultiSelectValueByPage
                 {
                     MultiSelect = authorOptions
+                },
+                Link = new UrlValueByPage
+                {
+                    Url = link
                 },
                 Status = new StatusValueByPage
                 {
