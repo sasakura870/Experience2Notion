@@ -4,8 +4,8 @@ using System.Text.Json.Serialization;
 namespace Experience2Notion.Models.Notions.Properties;
 public class SelectProperty : PropertyBase
 {
-    [JsonPropertyName("select")]
-    public SelectOption[] Select { get; set; } = [];
+    [JsonPropertyName("options")]
+    public SelectOption[] Options { get; set; } = [];
 
     public SelectProperty()
     {

@@ -25,33 +25,3 @@ public class DatabaseProperty : PropertyBase
     [JsonPropertyName("title")]
     public object? Title { get; set; }
 }
-
-//public class SelectOptions
-//{
-//    [JsonPropertyName("options")]
-//    public List<SelectOption> Options { get; set; } = new();
-//}
-
-//public class StatusOptions
-//{
-//    [JsonPropertyName("options")]
-//    public List<SelectOption> Options { get; set; } = new();
-
-//    [JsonPropertyName("groups")]
-//    public List<StatusGroup> Groups { get; set; } = new();
-//}
-
-//public class StatusGroup
-//{
-//    [JsonPropertyName("id")]
-//    public string Id { get; set; } = string.Empty;
-
-//    [JsonPropertyName("name")]
-//    public string Name { get; set; } = string.Empty;
-
-//    [JsonPropertyName("color")]
-//    public string Color { get; set; } = "default";
-
-//    [JsonPropertyName("option_ids")]
-//    public List<string> OptionIds { get; set; } = new();
-//}

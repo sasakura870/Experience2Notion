@@ -1,4 +1,5 @@
-﻿using Experience2Notion.Models.Notions;
+﻿using Experience2Notion.Configs;
+using Experience2Notion.Models.Notions;
 using Experience2Notion.Models.Notions.Objects;
 using Experience2Notion.Models.Notions.Properties;
 using System.Text;
@@ -12,6 +13,10 @@ public class NotionClient
 
     readonly string _getDbSchmeUrl;
     readonly string _createPagesUrl = "https://api.notion.com/v1/pages";
+
+    List<SelectOption> _authors = [];
+    List<SelectOption> _status = [];
+    List<SelectOption> _genres = [];
 
     public NotionClient()
     {
@@ -30,6 +35,11 @@ public class NotionClient
         var json = await response.Content.ReadAsStringAsync();
         var dbResponse = JsonSerializer.Deserialize<NotionDatabaseResponse>(json);
         response.EnsureSuccessStatusCode();
+
+        var hoge = dbResponse!.Properties[Consts.AuthorKey];
+        _authors = [.. (dbResponse!.Properties[Consts.AuthorKey].MultiSelect!).Options];
+        _status = [.. (dbResponse!.Properties[Consts.StatusKey].Status!).Options];
+        _genres = [.. (dbResponse!.Properties[Consts.GenreKey].MultiSelect!).Options];
     }
 
     public async Task CreateBookPageAsync(string title, string author)
