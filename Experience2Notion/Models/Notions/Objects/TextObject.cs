@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Experience2Notion.Models.Notions.Properties;
+namespace Experience2Notion.Models.Notions.Objects;
 public class TextObject
 {
     [JsonPropertyName("text")]
