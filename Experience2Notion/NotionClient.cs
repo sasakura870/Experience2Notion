@@ -15,7 +15,8 @@ public class NotionClient
     readonly string _createPagesUrl = "https://api.notion.com/v1/pages";
 
     List<SelectOption> _authors = [];
-    List<SelectOption> _status = [];
+    SelectOption _notStartStatus = new();
+    GroupOption _notStartGroup = new();
     List<SelectOption> _genres = [];
 
     public NotionClient()
@@ -38,12 +39,15 @@ public class NotionClient
 
         var hoge = dbResponse!.Properties[Consts.AuthorKey];
         _authors = [.. (dbResponse!.Properties[Consts.AuthorKey].MultiSelect!).Options];
-        _status = [.. (dbResponse!.Properties[Consts.StatusKey].Status!).Options];
-        _genres = [.. (dbResponse!.Properties[Consts.GenreKey].MultiSelect!).Options];
+        _notStartStatus = (dbResponse!.Properties[Consts.StatusKey].Status!).Options.First(s => s.Name == "未着手");
+        _notStartGroup = (dbResponse!.Properties[Consts.StatusKey].Status!).Groups.First(g => g.Name == "To-do");
+        _genres = [.. (dbResponse!.Properties[Consts.GenreKey].Select!).Options];
     }
 
     public async Task CreateBookPageAsync(string title, string author)
     {
+        var bookGenre = _genres.First(g => g.Name == "書籍");
+        var authorOption = _authors.FirstOrDefault(a => a.Name == author) ?? new SelectOption { Name = author };
         var payload = new NotionPageCreate
         {
             Parent = new Parent { DatabaseId = _databaseId },
@@ -59,25 +63,22 @@ public class NotionClient
                         }
                     ]
                 },
-                //Status = new StatusProperty
-                //{
-                //    Status = new StatusValue
-                //    {
-                //        //Id = 
-                //        Color = "red",
-                //        Name = "未着手",
-
-                //    }
-                //}
-                //Authors = new RichTextProperty
-                //{
-                //    RichText = [
-                //        new TextObject
-                //        {
-                //            Text = new TextContent { Content = author }
-                //        }
-                //    ]
-                //}
+                Authors = new MultiSelectProperty
+                {
+                    Options = [authorOption]
+                },
+                Status = new StatusProperty
+                {
+                    Status = new StatusValue
+                    {
+                        Options = [_notStartStatus],
+                        Groups = [_notStartGroup],
+                    }
+                },
+                Genre = new SelectProperty
+                {
+                    Options = [bookGenre]
+                }
             },
         };
         var jsonPayload = JsonSerializer.Serialize(payload);

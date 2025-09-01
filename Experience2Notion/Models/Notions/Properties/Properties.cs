@@ -12,7 +12,7 @@ public class Properties
 
     [JsonPropertyName("シリーズ")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public SelectProperty Series { get; set; } = new SelectProperty();
+    public SelectProperty? Series { get; set; }
 
     [JsonPropertyName("リンク")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
