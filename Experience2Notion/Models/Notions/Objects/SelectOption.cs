@@ -4,6 +4,7 @@ namespace Experience2Notion.Models.Notions.Objects;
 public class SelectOption
 {
     [JsonPropertyName("id")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Id { get; set; }
 
     [JsonPropertyName("name")]
@@ -13,5 +14,6 @@ public class SelectOption
     public string Color { get; set; } = "default";
 
     [JsonPropertyName("description")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Description { get; set; }
 }

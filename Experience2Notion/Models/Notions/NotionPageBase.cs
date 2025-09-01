@@ -6,14 +6,14 @@ namespace Experience2Notion.Models.Notions;
 public class NotionPageBase
 {
     [JsonPropertyName("parent")]
-    public Parent? Parent { get; set; } = new();
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Parent? Parent { get; set; }
 
     [JsonPropertyName("icon")]
-    public Emoji? Icon { get; set; } = new();
-
-    [JsonPropertyName("properties")]
-    public Properties.Properties? Properties { get; set; } = new();
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Emoji? Icon { get; set; }
 
     [JsonPropertyName("cover")]
-    public Cover? Cover { get; set; } = new();
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Cover? Cover { get; set; }
 }

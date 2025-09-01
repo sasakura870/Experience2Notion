@@ -16,7 +16,6 @@ public class NotionClient
 
     List<SelectOption> _authors = [];
     SelectOption _notStartStatus = new();
-    GroupOption _notStartGroup = new();
     List<SelectOption> _genres = [];
 
     public NotionClient()
@@ -40,7 +39,6 @@ public class NotionClient
         var hoge = dbResponse!.Properties[Consts.AuthorKey];
         _authors = [.. (dbResponse!.Properties[Consts.AuthorKey].MultiSelect!).Options];
         _notStartStatus = (dbResponse!.Properties[Consts.StatusKey].Status!).Options.First(s => s.Name == "未着手");
-        _notStartGroup = (dbResponse!.Properties[Consts.StatusKey].Status!).Groups.First(g => g.Name == "To-do");
         _genres = [.. (dbResponse!.Properties[Consts.GenreKey].Select!).Options];
     }
 
@@ -52,7 +50,7 @@ public class NotionClient
         {
             Parent = new Parent { DatabaseId = _databaseId },
             Icon = new Emoji { Type = "emoji", EmojiChar = "📚" },
-            Properties = new Properties
+            Properties = new PageProperties
             {
                 Title = new TitleProperty
                 {
@@ -63,22 +61,18 @@ public class NotionClient
                         }
                     ]
                 },
-                Authors = new MultiSelectProperty
+                Authors = new MultiSelectValueByPage
                 {
-                    Options = [authorOption]
+                    MultiSelect = [authorOption]
                 },
-                Status = new StatusProperty
+                Status = new StatusValueByPage
                 {
-                    Status = new StatusValue
-                    {
-                        Options = [_notStartStatus],
-                        Groups = [_notStartGroup],
-                    }
+                    Status = _notStartStatus
                 },
-                Genre = new SelectProperty
+                Genre = new SelectValueByPage
                 {
-                    Options = [bookGenre]
-                }
+                    Select = bookGenre
+                },
             },
         };
         var jsonPayload = JsonSerializer.Serialize(payload);
