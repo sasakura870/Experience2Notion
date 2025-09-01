@@ -27,12 +27,14 @@ public class NotionClient
 
         _databaseId = Environment.GetEnvironmentVariable("NOTION_DB_ID") ?? string.Empty;
         _getDbSchmeUrl = $"https://api.notion.com/v1/databases/{Guid.Parse(_databaseId)}";
+
+        LoadProperties();
     }
 
-    public async Task LoadProperties()
+    public void LoadProperties()
     {
-        var response = await _client.GetAsync(_getDbSchmeUrl);
-        var json = await response.Content.ReadAsStringAsync();
+        var response = _client.GetAsync(_getDbSchmeUrl).Result;
+        var json = response.Content.ReadAsStringAsync().Result;
         var dbResponse = JsonSerializer.Deserialize<NotionDatabaseResponse>(json);
         response.EnsureSuccessStatusCode();
 
@@ -42,14 +44,19 @@ public class NotionClient
         _genres = [.. (dbResponse!.Properties[Consts.GenreKey].Select!).Options];
     }
 
-    public async Task CreateBookPageAsync(string title, string author)
+    public async Task CreateBookPageAsync(string title, IList<string> authors)
     {
         var bookGenre = _genres.First(g => g.Name == "書籍");
-        var authorOption = _authors.FirstOrDefault(a => a.Name == author) ?? new SelectOption { Name = author };
+        var authorOptions = authors.Select(author => _authors.FirstOrDefault(a => a.Name == author) ?? new SelectOption { Name = author }).ToList();
         var payload = new NotionPageCreate
         {
             Parent = new Parent { DatabaseId = _databaseId },
-            Icon = new Emoji { Type = "emoji", EmojiChar = "📚" },
+            Icon = new Icon { Type = "external",
+                External = new ExternalFile
+                {
+                    Url = Consts.BookIconUrl
+                }
+            },
             Properties = new PageProperties
             {
                 Title = new TitleProperty
@@ -63,7 +70,7 @@ public class NotionClient
                 },
                 Authors = new MultiSelectValueByPage
                 {
-                    MultiSelect = [authorOption]
+                    MultiSelect = authorOptions
                 },
                 Status = new StatusValueByPage
                 {

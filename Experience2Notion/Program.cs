@@ -12,13 +12,10 @@ if (response.Items is null || response.Items.Count == 0)
 var book = response.Items[0].VolumeInfo;
 
 Console.WriteLine($"タイトル: {book.Title}");
-Console.WriteLine($"著者: {string.Join(", ", book.Authors ?? new string[] { })}");
-Console.WriteLine($"出版社: {book.Publisher}");
+Console.WriteLine($"著者: {string.Join(", ", book.Authors)}");
 Console.WriteLine($"出版日: {book.PublishedDate}");
-Console.WriteLine($"ジャンル: {string.Join(", ", book.Categories ?? new string[] { })}");
 Console.WriteLine($"説明: {book.Description}");
 Console.WriteLine($"サムネイル: {book.ImageLinks?.Thumbnail}");
 
 var notionClient = new Experience2Notion.NotionClient();
-await notionClient.LoadProperties();
-await notionClient.CreateBookPageAsync(book.Title, string.Join(", ", book.Authors ?? new string[] { }));
+await notionClient.CreateBookPageAsync(book.Title, book.Authors);

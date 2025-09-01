@@ -11,7 +11,7 @@ public class NotionPageBase
 
     [JsonPropertyName("icon")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public Emoji? Icon { get; set; }
+    public Icon? Icon { get; set; }
 
     [JsonPropertyName("cover")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
