@@ -117,7 +117,7 @@ public class NotionClient
                 {
                     Image = new ImageContent
                     {
-                        Type = "image",
+                        Type = "file_upload",
                         FileUpload = new FileUploadContent{
                             Id = imageId
                         }
