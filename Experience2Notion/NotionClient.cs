@@ -1,5 +1,6 @@
 ﻿using Experience2Notion.Configs;
 using Experience2Notion.Models.Notions;
+using Experience2Notion.Models.Notions.Blocks;
 using Experience2Notion.Models.Notions.Objects;
 using Experience2Notion.Models.Notions.Properties;
 using System.Text;
@@ -44,14 +45,16 @@ public class NotionClient
         _genres = [.. (dbResponse!.Properties[Consts.GenreKey].Select!).Options];
     }
 
-    public async Task CreateBookPageAsync(string title, IList<string> authors, string link)
+    public async Task CreateBookPageAsync(string title, IList<string> authors, string link, string coverImageUrl)
     {
         var bookGenre = _genres.First(g => g.Name == "書籍");
         var authorOptions = authors.Select(author => _authors.FirstOrDefault(a => a.Name == author) ?? new SelectOption { Name = author }).ToList();
         var payload = new NotionPageCreate
         {
             Parent = new Parent { DatabaseId = _databaseId },
-            Icon = new Icon { Type = "external",
+            Icon = new Icon
+            {
+                Type = "external",
                 External = new ExternalFile
                 {
                     Url = Consts.BookIconUrl
@@ -85,6 +88,25 @@ public class NotionClient
                     Select = bookGenre
                 },
             },
+            Children =
+            [
+                new ParagraphBlock {
+                    Paragraph = new ParagraphContent{
+                        RichText = []
+                    }
+                },
+                new ImageBlock
+                {
+                    Image = new ImageContent
+                    {
+                        Type = "external",
+                        External = new External
+                        {
+                            Url = coverImageUrl
+                        }
+                    }
+                }
+            ]
         };
         var jsonPayload = JsonSerializer.Serialize(payload);
         var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
