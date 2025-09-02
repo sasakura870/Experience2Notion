@@ -3,6 +3,7 @@ using Experience2Notion.Models.Notions;
 using Experience2Notion.Models.Notions.Blocks;
 using Experience2Notion.Models.Notions.Objects;
 using Experience2Notion.Models.Notions.Properties;
+using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 
@@ -43,6 +44,23 @@ public class NotionClient
         _authors = [.. dbResponse!.Properties[Consts.AuthorKey].MultiSelect!.Options];
         _notStartStatus = dbResponse!.Properties[Consts.StatusKey].Status!.Options.First(s => s.Name == "未着手");
         _genres = [.. dbResponse!.Properties[Consts.GenreKey].Select!.Options];
+    }
+
+    public async Task<string> UploadImageAsync(string imageName, byte[] imageData, string mime)
+    {
+        var fileUploadId = await CreateFileUploadAsync(imageName, mime);
+
+        using var content = new MultipartFormDataContent();
+        using var imageContent = new ByteArrayContent(imageData);
+        imageContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
+        content.Add(imageContent, "file", imageName);
+
+        var response = await _client.PostAsync($"https://api.notion.com/v1/file_uploads/{fileUploadId}/send", content);
+        response.EnsureSuccessStatusCode();
+
+        var json = await response.Content.ReadAsStringAsync();
+        var result = JsonSerializer.Deserialize<NotionFileUploadResponse>(json);
+        return result!.Id;
     }
 
     public async Task CreateBookPageAsync(string title, IList<string> authors, string link, string coverImageUrl)
@@ -109,9 +127,20 @@ public class NotionClient
             ]
         };
         var jsonPayload = JsonSerializer.Serialize(payload);
-        var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+        var content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json);
         var response = await _client.PostAsync(_createPagesUrl, content);
         var hoge = await response.Content.ReadAsStringAsync();
         response.EnsureSuccessStatusCode();
+    }
+
+    private async Task<string> CreateFileUploadAsync(string imageName, string mime)
+    {
+        var payload = new { imageName, content_type = mime };
+        var jsonPayload = JsonSerializer.Serialize(payload);
+        var response = await _client.PostAsync("https://api.notion.com/v1/file_uploads", new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json));
+        response.EnsureSuccessStatusCode();
+        var json = await response.Content.ReadAsStringAsync();
+        var result = JsonSerializer.Deserialize<NotionFileUploadResponse>(json);
+        return result!.Id;
     }
 }
