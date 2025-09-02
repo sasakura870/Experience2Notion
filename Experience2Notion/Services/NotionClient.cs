@@ -63,7 +63,7 @@ public class NotionClient
         return result!.Id;
     }
 
-    public async Task CreateBookPageAsync(string title, IList<string> authors, string link, string coverImageUrl)
+    public async Task CreateBookPageAsync(string title, IList<string> authors, string link, string imageId)
     {
         var bookGenre = _genres.First(g => g.Name == "書籍");
         var authorOptions = authors.Select(author => _authors.FirstOrDefault(a => a.Name == author) ?? new SelectOption { Name = author }).ToList();
@@ -117,10 +117,9 @@ public class NotionClient
                 {
                     Image = new ImageContent
                     {
-                        Type = "external",
-                        External = new External
-                        {
-                            Url = coverImageUrl
+                        Type = "image",
+                        FileUpload = new FileUploadContent{
+                            Id = imageId
                         }
                     }
                 }
@@ -129,7 +128,6 @@ public class NotionClient
         var jsonPayload = JsonSerializer.Serialize(payload);
         var content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json);
         var response = await _client.PostAsync(_createPagesUrl, content);
-        var hoge = await response.Content.ReadAsStringAsync();
         response.EnsureSuccessStatusCode();
     }
 
