@@ -4,8 +4,8 @@ namespace Experience2Notion.Models.Notions.Objects;
 public class ImageContent
 {
     [JsonPropertyName("type")]
-    public string Type { get; set; } = "external";
+    public string Type { get; set; } = "file_upload";
 
-    [JsonPropertyName("external")]
-    public External External { get; set; } = new();
+    [JsonPropertyName("file_upload")]
+    public FileUploadContent FileUpload { get; set; } = new();
 }

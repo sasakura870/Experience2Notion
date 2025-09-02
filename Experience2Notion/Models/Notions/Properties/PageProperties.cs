@@ -18,6 +18,9 @@ public class PageProperties
 
     [JsonPropertyName("ジャンル")]
     public SelectValueByPage Genre { get; set; } = new();
+
+    [JsonPropertyName("発売日")]
+    public DateValueByPage PublishedDate { get; set; } = new();
 }
 
 public class MultiSelectValueByPage
@@ -42,4 +45,10 @@ public class UrlValueByPage
 {
     [JsonPropertyName("url")]
     public string Url { get; set; } = string.Empty;
+}
+
+public class DateValueByPage
+{
+    [JsonPropertyName("date")]
+    public DateValue Date { get; set; } = new();
 }
