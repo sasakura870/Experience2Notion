@@ -63,7 +63,7 @@ public class NotionClient
         return result!.Id;
     }
 
-    public async Task CreateBookPageAsync(string title, IList<string> authors, string link, string imageId)
+    public async Task CreateBookPageAsync(string title, IList<string> authors, string link, string publishedDate, string imageId)
     {
         var bookGenre = _genres.First(g => g.Name == "書籍");
         var authorOptions = authors.Select(author => _authors.FirstOrDefault(a => a.Name == author) ?? new SelectOption { Name = author }).ToList();
@@ -104,6 +104,10 @@ public class NotionClient
                 Genre = new SelectValueByPage
                 {
                     Select = bookGenre
+                },
+                PublishedDate = new DateValueByPage
+                {
+                    Date = new DateValue { Start = publishedDate }
                 },
             },
             Children =

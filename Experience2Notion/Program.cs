@@ -18,5 +18,9 @@ Console.WriteLine($"出版日: {book.PublishedDate}");
 Console.WriteLine($"説明: {book.Description}");
 Console.WriteLine($"サムネイル: {book.ImageLinks?.Thumbnail}");
 
+var searcher = new GoogleImageSearcher();
+var (imageData, mime) = await searcher.DownloadImageAsync(book.Title);
+
 var notionClient = new NotionClient();
-await notionClient.CreateBookPageAsync(book.Title, book.Authors, book.CanonicalVolumeLink, book.ImageLinks!.Thumbnail);
+var imageId = await notionClient.UploadImageAsync($"{book.Title}.jpg", imageData, mime);
+await notionClient.CreateBookPageAsync(book.Title, book.Authors, book.CanonicalVolumeLink, book.PublishedDate, imageId);
