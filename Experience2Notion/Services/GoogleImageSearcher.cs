@@ -18,7 +18,7 @@ public class GoogleImageSearcher
         _cx = Environment.GetEnvironmentVariable("GOOGLE_CUSTOM_SEARCH_ENGINE_ID") ?? throw new ArgumentException("Google Custom Searchの検索エンジンIDが指定されていません。");
     }
 
-    public async Task<string?> SearchImageAsync(string query)
+    public async Task<(byte[], string)> DownloadImageAsync(string query)
     {
         var listRequest = _searcher.Cse.List();
         listRequest.Q = query;
@@ -26,6 +26,14 @@ public class GoogleImageSearcher
         listRequest.SearchType = CseResource.ListRequest.SearchTypeEnum.Image;
         listRequest.Num = 1;
         var search = await listRequest.ExecuteAsync();
-        return search.Items?.FirstOrDefault()?.Link;
+        var resultItem = search.Items?.FirstOrDefault();
+        if (resultItem is null)
+        {
+            throw new Exception($"指定されたクエリ「{query}」の画像が見つかりませんでした。");
+        }
+        var url = resultItem.Link;
+        using var client = new HttpClient();
+        var byteData = await client.GetByteArrayAsync(url);
+        return (byteData, resultItem.Mime);
     }
 }
