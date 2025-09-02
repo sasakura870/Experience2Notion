@@ -6,7 +6,7 @@ using Experience2Notion.Models.Notions.Properties;
 using System.Text;
 using System.Text.Json;
 
-namespace Experience2Notion;
+namespace Experience2Notion.Services;
 public class NotionClient
 {
     readonly HttpClient _client;
@@ -40,9 +40,9 @@ public class NotionClient
         response.EnsureSuccessStatusCode();
 
         var hoge = dbResponse!.Properties[Consts.AuthorKey];
-        _authors = [.. (dbResponse!.Properties[Consts.AuthorKey].MultiSelect!).Options];
-        _notStartStatus = (dbResponse!.Properties[Consts.StatusKey].Status!).Options.First(s => s.Name == "未着手");
-        _genres = [.. (dbResponse!.Properties[Consts.GenreKey].Select!).Options];
+        _authors = [.. dbResponse!.Properties[Consts.AuthorKey].MultiSelect!.Options];
+        _notStartStatus = dbResponse!.Properties[Consts.StatusKey].Status!.Options.First(s => s.Name == "未着手");
+        _genres = [.. dbResponse!.Properties[Consts.GenreKey].Select!.Options];
     }
 
     public async Task CreateBookPageAsync(string title, IList<string> authors, string link, string coverImageUrl)

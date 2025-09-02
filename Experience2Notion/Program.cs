@@ -1,4 +1,5 @@
 ﻿using Google.Apis.Books.v1;
+using Experience2Notion.Services;
 
 var service = new BooksService();
 var request = service.Volumes.List($"isbn:4163906185");
@@ -17,5 +18,5 @@ Console.WriteLine($"出版日: {book.PublishedDate}");
 Console.WriteLine($"説明: {book.Description}");
 Console.WriteLine($"サムネイル: {book.ImageLinks?.Thumbnail}");
 
-var notionClient = new Experience2Notion.NotionClient();
+var notionClient = new NotionClient();
 await notionClient.CreateBookPageAsync(book.Title, book.Authors, book.CanonicalVolumeLink, book.ImageLinks!.Thumbnail);
