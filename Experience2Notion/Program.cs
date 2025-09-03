@@ -19,7 +19,7 @@ Console.WriteLine($"説明: {book.Description}");
 Console.WriteLine($"サムネイル: {book.ImageLinks?.Thumbnail}");
 
 var searcher = new GoogleImageSearcher();
-var (imageData, mime) = await searcher.DownloadImageAsync(book.Title);
+var (imageData, mime) = await searcher.DownloadImageAsync($"{book.Title} {string.Join(' ', book.Authors)}");
 
 var notionClient = new NotionClient();
 var imageId = await notionClient.UploadImageAsync($"{book.Title}.jpg", imageData, mime);
