@@ -53,7 +53,7 @@ public partial class NotionClient
 
         using var content = new MultipartFormDataContent();
         using var imageContent = new ByteArrayContent(imageData);
-        imageContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
+        imageContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(mime);
         content.Add(imageContent, "file", imageName);
 
         var response = await _client.PostAsync($"https://api.notion.com/v1/file_uploads/{fileUploadId}/send", content);
