@@ -6,9 +6,10 @@ using Experience2Notion.Models.Notions.Properties;
 using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace Experience2Notion.Services;
-public class NotionClient
+public partial class NotionClient
 {
     readonly HttpClient _client;
     readonly string _databaseId;
@@ -105,10 +106,6 @@ public class NotionClient
                 {
                     Select = bookGenre
                 },
-                PublishedDate = new DateValueByPage
-                {
-                    Date = new DateValue { Start = publishedDate }
-                },
             },
             Children =
             [
@@ -129,6 +126,16 @@ public class NotionClient
                 }
             ]
         };
+        if (DatetimeRegex().IsMatch(publishedDate))
+        {
+            payload.Properties.PublishedDate = new DateValueByPage
+            {
+                Date = new DateValue
+                {
+                    Start = publishedDate
+                }
+            };
+        }
         var jsonPayload = JsonSerializer.Serialize(payload);
         var content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json);
         var response = await _client.PostAsync(_createPagesUrl, content);
@@ -145,4 +152,7 @@ public class NotionClient
         var result = JsonSerializer.Deserialize<NotionFileUploadResponse>(json);
         return result!.Id;
     }
+
+    [GeneratedRegex(@"^\d{4}-\d{2}-\d{2}$")]
+    private static partial Regex DatetimeRegex();
 }

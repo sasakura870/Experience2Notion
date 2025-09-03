@@ -2,7 +2,7 @@
 using Experience2Notion.Services;
 
 var service = new BooksService();
-var request = service.Volumes.List($"isbn:4163906185");
+var request = service.Volumes.List($"isbn:{args[0]}");
 var response = await request.ExecuteAsync();
 if (response.Items is null || response.Items.Count == 0)
 {

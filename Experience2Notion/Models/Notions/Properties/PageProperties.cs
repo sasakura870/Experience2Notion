@@ -20,7 +20,8 @@ public class PageProperties
     public SelectValueByPage Genre { get; set; } = new();
 
     [JsonPropertyName("発売日")]
-    public DateValueByPage PublishedDate { get; set; } = new();
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateValueByPage? PublishedDate { get; set; }
 }
 
 public class MultiSelectValueByPage
