@@ -36,6 +36,7 @@ public partial class NotionClient
 
     public void LoadProperties()
     {
+        Console.WriteLine("Notionのデータベースのプロパティを取得します。");
         var response = _client.GetAsync(_getDbSchmeUrl).Result;
         var json = response.Content.ReadAsStringAsync().Result;
         var dbResponse = JsonSerializer.Deserialize<NotionDatabaseResponse>(json);
@@ -45,12 +46,14 @@ public partial class NotionClient
         _authors = [.. dbResponse!.Properties[Consts.AuthorKey].MultiSelect!.Options];
         _notStartStatus = dbResponse!.Properties[Consts.StatusKey].Status!.Options.First(s => s.Name == "未着手");
         _genres = [.. dbResponse!.Properties[Consts.GenreKey].Select!.Options];
+        Console.WriteLine("Notionのデータベースのプロパティを取得しました。");
     }
 
     public async Task<string> UploadImageAsync(string imageName, byte[] imageData, string mime)
     {
         var fileUploadId = await CreateFileUploadAsync(imageName, mime);
 
+        Console.WriteLine($"Notionのupload_file[{fileUploadId}]に画像をアップロードします。");
         using var content = new MultipartFormDataContent();
         using var imageContent = new ByteArrayContent(imageData);
         imageContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(mime);
@@ -61,11 +64,13 @@ public partial class NotionClient
 
         var json = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<NotionFileUploadResponse>(json);
+        Console.WriteLine($"画像をアップロードしました。 : {result!.Id}");
         return result!.Id;
     }
 
     public async Task CreateBookPageAsync(string title, IList<string> authors, string link, string publishedDate, string imageId)
     {
+        Console.WriteLine($"Notionにページを作成します。");
         var bookGenre = _genres.First(g => g.Name == "書籍");
         var authorOptions = authors.Select(author => _authors.FirstOrDefault(a => a.Name == author) ?? new SelectOption { Name = author }).ToList();
         var payload = new NotionPageCreate
@@ -140,16 +145,26 @@ public partial class NotionClient
         var content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json);
         var response = await _client.PostAsync(_createPagesUrl, content);
         response.EnsureSuccessStatusCode();
+        Console.WriteLine($"Notionのページを作成しました。");
+        Console.WriteLine($"タイトル: {title}");
+        Console.WriteLine($"著者: {string.Join(", ", authors)}");
+        Console.WriteLine($"リンク: {link}");
+        if (DatetimeRegex().IsMatch(publishedDate))
+        {
+            Console.WriteLine($"発売日: {publishedDate}");
+        }
     }
 
     private async Task<string> CreateFileUploadAsync(string imageName, string mime)
     {
+        Console.WriteLine("Notionにupload_fileを作成します。");
         var payload = new { imageName, content_type = mime };
         var jsonPayload = JsonSerializer.Serialize(payload);
         var response = await _client.PostAsync("https://api.notion.com/v1/file_uploads", new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json));
         response.EnsureSuccessStatusCode();
         var json = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<NotionFileUploadResponse>(json);
+        Console.WriteLine($"upload_fileを作成しました。 : {result!.Id}");
         return result!.Id;
     }
 

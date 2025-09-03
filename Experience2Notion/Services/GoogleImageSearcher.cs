@@ -20,6 +20,7 @@ public class GoogleImageSearcher
 
     public async Task<(byte[], string)> DownloadImageAsync(string query)
     {
+        Console.WriteLine($"画像検索を開始します。 : {query}");
         var listRequest = _searcher.Cse.List();
         listRequest.Q = query;
         listRequest.Cx = _cx;
@@ -34,6 +35,7 @@ public class GoogleImageSearcher
         var url = resultItem.Link;
         using var client = new HttpClient();
         var byteData = await client.GetByteArrayAsync(url);
+        Console.WriteLine("画像を取得しました。");
         return (byteData, resultItem.Mime);
     }
 }
