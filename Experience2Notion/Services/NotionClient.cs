@@ -68,7 +68,7 @@ public partial class NotionClient
         return result!.Id;
     }
 
-    public async Task CreateBookPageAsync(string title, IList<string> authors, string link, string publishedDate, string imageId)
+    public async Task<CreatePageResponse> CreateBookPageAsync(string title, IList<string> authors, string link, string publishedDate, string imageId)
     {
         Console.WriteLine($"Notionにページを作成します。");
         var bookGenre = _genres.First(g => g.Name == "書籍");
@@ -153,6 +153,8 @@ public partial class NotionClient
         {
             Console.WriteLine($"発売日: {publishedDate}");
         }
+        var jsonRes = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<CreatePageResponse>(jsonRes);
     }
 
     private async Task<string> CreateFileUploadAsync(string imageName, string mime)
