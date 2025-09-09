@@ -1,14 +1,9 @@
 ﻿using Experience2Notion.Models.Spotifies;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http.Headers;
-using System.Net.Http;
+using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
-using System.Net.Mime;
 
 namespace Experience2Notion.Services;
 public class SpotifyClient
@@ -46,7 +41,7 @@ public class SpotifyClient
         return json.RootElement.GetProperty("access_token").GetString()!;
     }
 
-    public async Task<SpotifyAlbum?> SearchAlbumAsync(string albumName, string artist)
+    public async Task<Album?> SearchAlbumAsync(string albumName, string artist)
     {
         var url = $"https://api.spotify.com/v1/search?q=album:{Uri.EscapeDataString(albumName)}%20artist:{Uri.EscapeDataString(artist)}&type=album&limit=1";
         var response = await _client.GetAsync(url);
