@@ -1,4 +1,5 @@
-﻿using Google.Apis.Books.v1;
+﻿using Experience2Notion.Exceptions;
+using Google.Apis.Books.v1;
 using Google.Apis.Books.v1.Data;
 using Microsoft.Extensions.Logging;
 
@@ -15,7 +16,7 @@ public class GoogleBookSeacher(ILogger<GoogleBookSeacher> logger)
         var response = await request.ExecuteAsync();
         if (response.Items is null || response.Items.Count == 0)
         {
-            throw new Exception("指定された本が見つかりませんでした。");
+            throw new Experience2NotionException("指定された本が見つかりませんでした。");
         }
         _logger.LogInformation("本が見つかりました。タイトル: {Title}, 著者: {Authors}",
             response.Items[0].VolumeInfo.Title,

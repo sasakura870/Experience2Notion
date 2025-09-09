@@ -1,4 +1,5 @@
-﻿using Google.Apis.CustomSearchAPI.v1;
+﻿using Experience2Notion.Exceptions;
+using Google.Apis.CustomSearchAPI.v1;
 using Google.Apis.Services;
 using Microsoft.Extensions.Logging;
 
@@ -30,11 +31,7 @@ public class GoogleImageSearcher
         listRequest.SearchType = CseResource.ListRequest.SearchTypeEnum.Image;
         listRequest.Num = 1;
         var search = await listRequest.ExecuteAsync();
-        var resultItem = search.Items?.FirstOrDefault();
-        if (resultItem is null)
-        {
-            throw new Exception($"指定されたクエリ「{query}」の画像が見つかりませんでした。");
-        }
+        var resultItem = (search.Items?.FirstOrDefault()) ?? throw new Experience2NotionException($"指定されたクエリ「{query}」の画像が見つかりませんでした。");
         var url = resultItem.Link;
         using var client = new HttpClient();
         var byteData = await client.GetByteArrayAsync(url);
