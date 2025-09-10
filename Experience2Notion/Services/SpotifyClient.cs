@@ -11,7 +11,10 @@ namespace Experience2Notion.Services;
 public class SpotifyClient
 {
     private readonly ILogger<SpotifyClient> _logger;
-    private readonly HttpClient _client = new HttpClient();
+    private readonly HttpClient _client = new();
+
+    private readonly string _singleSuffix = " - Single";
+    private readonly string _epSuffix = " - EP";
 
     public SpotifyClient(ILogger<SpotifyClient> logger)
     {
@@ -46,6 +49,14 @@ public class SpotifyClient
     public async Task<Album?> SearchAlbumAsync(string albumName, string artist)
     {
         _logger.LogInformation("Spotifyから音楽アルバムを検索します。アルバム名: {AlbumName}, アーティスト: {Artist}", albumName, artist);
+        if (albumName.EndsWith(_singleSuffix, StringComparison.OrdinalIgnoreCase))
+        {
+            albumName = albumName[..^_singleSuffix.Length].Trim();
+        }
+        else if (albumName.EndsWith(_epSuffix, StringComparison.OrdinalIgnoreCase))
+        {
+            albumName = albumName[..^_epSuffix.Length].Trim();
+        }
         var url = $"https://api.spotify.com/v1/search?{CreateSearchUrl(albumName, artist)}";
         var response = await _client.GetAsync(url);
         response.EnsureSuccessStatusCode();

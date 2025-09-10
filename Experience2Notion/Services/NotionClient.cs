@@ -56,7 +56,7 @@ public partial class NotionClient
         return result!.Id;
     }
 
-    public async Task<CreatePageResponse> CreateBookPageAsync(string title, IList<string> authors, string link, string publishedDate, string imageId)
+    public async Task<CreatePageResponse> CreateBookPageAsync(string title, IEnumerable<string> authors, string link, string publishedDate, string imageId)
     {
         _logger.LogInformation($"Notionに書籍ページを作成します。");
         var payload = CreateNotionPagePayload(title, "書籍", [.. authors], link, publishedDate, imageId);
@@ -76,24 +76,24 @@ public partial class NotionClient
         return JsonSerializer.Deserialize<CreatePageResponse>(jsonRes)!;
     }
 
-    public async Task<CreatePageResponse> CreateMusicAlbumPageAsync(string title, string artist, string link, string releaseDate, string imageId)
+    public async Task<CreatePageResponse> CreateMusicAlbumPageAsync(string title, IEnumerable<string> artists, string link, string releaseDate, string imageId)
     {
         _logger.LogInformation($"Notionに音楽アルバムページを作成します。");
-        var payload = CreateNotionPagePayload(title, "音楽アルバム", [artist], link, releaseDate, imageId);
+        var payload = CreateNotionPagePayload(title, "音楽アルバム", [.. artists], link, releaseDate, imageId);
         var jsonPayload = JsonSerializer.Serialize(payload);
         var content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json);
         var response = await _client.PostAsync(_createPagesUrl, content);
         response.EnsureSuccessStatusCode();
         _logger.LogInformation($"Notionのページを作成しました。");
         _logger.LogInformation("タイトル: {Title}", title);
-        _logger.LogInformation("アーティスト {Artist}", artist);
+        _logger.LogInformation("アーティスト {Artist}", string.Join(", ", artists));
         _logger.LogInformation("リンク: {Link}", link);
         _logger.LogInformation("発売日: {ReleaseDate}", releaseDate);
         var jsonRes = await response.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<CreatePageResponse>(jsonRes)!;
     }
 
-    private NotionPageCreate CreateNotionPagePayload(string title, string genre, string[] authors, string link, string publishedDate, string imageId)
+    private NotionPageCreate CreateNotionPagePayload(string title, string genre, IEnumerable<string> authors, string link, string publishedDate, string imageId)
     {
         var genreOption = _genres.First(g => g.Name == genre);
         var IconUrl = genre switch
