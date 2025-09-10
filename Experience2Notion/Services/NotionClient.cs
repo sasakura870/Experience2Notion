@@ -37,21 +37,6 @@ public partial class NotionClient
         LoadProperties();
     }
 
-    public void LoadProperties()
-    {
-        _logger.LogInformation("Notionのデータベースのプロパティを取得します。");
-        var response = _client.GetAsync(_getDbSchmeUrl).Result;
-        var json = response.Content.ReadAsStringAsync().Result;
-        var dbResponse = JsonSerializer.Deserialize<NotionDatabaseResponse>(json);
-        response.EnsureSuccessStatusCode();
-
-        var hoge = dbResponse!.Properties[Consts.AuthorKey];
-        _authors = [.. dbResponse!.Properties[Consts.AuthorKey].MultiSelect!.Options];
-        _notStartStatus = dbResponse!.Properties[Consts.StatusKey].Status!.Options.First(s => s.Name == "未着手");
-        _genres = [.. dbResponse!.Properties[Consts.GenreKey].Select!.Options];
-        _logger.LogInformation("Notionのデータベースのプロパティを取得しました。");
-    }
-
     public async Task<string> UploadImageAsync(string imageName, byte[] imageData, string mime)
     {
         var fileUploadId = await CreateFileUploadAsync(imageName, mime);
@@ -159,6 +144,22 @@ public partial class NotionClient
         var jsonRes = await response.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<CreatePageResponse>(jsonRes)!;
     }
+
+    private void LoadProperties()
+    {
+        _logger.LogInformation("Notionのデータベースのプロパティを取得します。");
+        var response = _client.GetAsync(_getDbSchmeUrl).Result;
+        var json = response.Content.ReadAsStringAsync().Result;
+        var dbResponse = JsonSerializer.Deserialize<NotionDatabaseResponse>(json);
+        response.EnsureSuccessStatusCode();
+
+        var hoge = dbResponse!.Properties[Consts.AuthorKey];
+        _authors = [.. dbResponse!.Properties[Consts.AuthorKey].MultiSelect!.Options];
+        _notStartStatus = dbResponse!.Properties[Consts.StatusKey].Status!.Options.First(s => s.Name == "未着手");
+        _genres = [.. dbResponse!.Properties[Consts.GenreKey].Select!.Options];
+        _logger.LogInformation("Notionのデータベースのプロパティを取得しました。");
+    }
+
 
     private async Task<string> CreateFileUploadAsync(string imageName, string mime)
     {
