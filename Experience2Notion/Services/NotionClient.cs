@@ -145,6 +145,89 @@ public partial class NotionClient
         return JsonSerializer.Deserialize<CreatePageResponse>(jsonRes)!;
     }
 
+    public async Task<CreatePageResponse> CreateMusicAlbumPageAsync(string title, string artist, string link, string releaseDate, string imageId)
+    {
+        _logger.LogInformation($"Notionにページを作成します。");
+        var genre = _genres.First(g => g.Name == "音楽アルバム");
+        var authorOptions = _authors.FirstOrDefault(a => a.Name == artist) ?? new SelectOption { Name = artist };
+        var payload = new NotionPageCreate
+        {
+            Parent = new Parent { DatabaseId = _databaseId },
+            Icon = new Icon
+            {
+                Type = "external",
+                External = new ExternalFile
+                {
+                    Url = Consts.MusicIconUrl
+                }
+            },
+            Properties = new PageProperties
+            {
+                Title = new TitleProperty
+                {
+                    Title = [
+                        new TextObject
+                        {
+                            Text = new TextContent { Content = title }
+                        }
+                    ]
+                },
+                Authors = new MultiSelectValueByPage
+                {
+                    MultiSelect = [authorOptions]
+                },
+                Link = new UrlValueByPage
+                {
+                    Url = link
+                },
+                Status = new StatusValueByPage
+                {
+                    Status = _notStartStatus
+                },
+                Genre = new SelectValueByPage
+                {
+                    Select = genre
+                },
+                PublishedDate = new DateValueByPage
+                {
+                    Date = new DateValue
+                    {
+                        Start = releaseDate
+                    }
+                }
+            },
+            Children =
+            [
+                new ParagraphBlock {
+                    Paragraph = new ParagraphContent{
+                        RichText = []
+                    }
+                },
+                new ImageBlock
+                {
+                    Image = new ImageContent
+                    {
+                        Type = "file_upload",
+                        FileUpload = new FileUploadContent{
+                            Id = imageId
+                        }
+                    }
+                }
+            ]
+        };
+        var jsonPayload = JsonSerializer.Serialize(payload);
+        var content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json);
+        var response = await _client.PostAsync(_createPagesUrl, content);
+        response.EnsureSuccessStatusCode();
+        _logger.LogInformation($"Notionのページを作成しました。");
+        _logger.LogInformation("タイトル: {Title}", title);
+        _logger.LogInformation("アーティスト {Artist}", artist);
+        _logger.LogInformation("リンク: {Link}", link);
+        _logger.LogInformation("発売日: {ReleaseDate}", releaseDate);
+        var jsonRes = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<CreatePageResponse>(jsonRes)!;
+    }
+
     private void LoadProperties()
     {
         _logger.LogInformation("Notionのデータベースのプロパティを取得します。");
