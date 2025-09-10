@@ -45,20 +45,23 @@ public class SpotifyClient
 
     public async Task<Album?> SearchAlbumAsync(string albumName, string artist)
     {
+        _logger.LogInformation("Spotifyから音楽アルバムを検索します。アルバム名: {AlbumName}, アーティスト: {Artist}", albumName, artist);
         var url = $"https://api.spotify.com/v1/search?{CreateSearchUrl(albumName, artist)}";
         var response = await _client.GetAsync(url);
-        var hoge = await response.Content.ReadAsStringAsync();
         response.EnsureSuccessStatusCode();
 
         var json = await response.Content.ReadAsStringAsync();
         var data = JsonSerializer.Deserialize<SpotifySearchResponse>(json);
         if (data is null || data.Albums.Items.Count == 0)
         {
-            _logger.LogWarning("アルバムが見つかりませんでした。AlbumName: {AlbumName}, Artist: {Artist}", albumName, artist);
-            throw new Experience2NotionException($"アルバムが見つかりませんでした。AlbumName: {albumName}, Artist: {artist}");
+            _logger.LogWarning("アルバムが見つかりませんでした。アルバム名: {AlbumName}, アーティスト: {Artist}", albumName, artist);
+            throw new Experience2NotionException($"アルバムが見つかりませんでした。アルバム名: {albumName}, アーティスト: {artist}");
         }
 
-        return data.Albums.Items.FirstOrDefault();
+        var targetAlbum = data.Albums.Items.FirstOrDefault()!;
+        _logger.LogInformation("アルバムが見つかりました。" +
+            "アルバム名: {AlbumName}, アーティスト: {Artist}, Spotify URL: {Url}", targetAlbum.Name, string.Join(", ", targetAlbum.Artists.Select(a => a.Name)), targetAlbum.ExternalUrl);
+        return targetAlbum;
     }
 
     private string CreateSearchUrl(string albumName, string artist)
