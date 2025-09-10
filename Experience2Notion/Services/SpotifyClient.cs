@@ -1,9 +1,11 @@
 ﻿using Experience2Notion.Models.Spotifies;
+using Experience2Notion.Exceptions;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
+using System.Web;
 
 namespace Experience2Notion.Services;
 public class SpotifyClient
@@ -43,13 +45,32 @@ public class SpotifyClient
 
     public async Task<Album?> SearchAlbumAsync(string albumName, string artist)
     {
-        var url = $"https://api.spotify.com/v1/search?q=album:{Uri.EscapeDataString(albumName)}%20artist:{Uri.EscapeDataString(artist)}&type=album&limit=1";
+        var url = $"https://api.spotify.com/v1/search?{CreateSearchUrl(albumName, artist)}";
         var response = await _client.GetAsync(url);
+        var hoge = await response.Content.ReadAsStringAsync();
         response.EnsureSuccessStatusCode();
 
         var json = await response.Content.ReadAsStringAsync();
         var data = JsonSerializer.Deserialize<SpotifySearchResponse>(json);
+        if (data is null || data.Albums.Items.Count == 0)
+        {
+            _logger.LogWarning("アルバムが見つかりませんでした。AlbumName: {AlbumName}, Artist: {Artist}", albumName, artist);
+            throw new Experience2NotionException($"アルバムが見つかりませんでした。AlbumName: {albumName}, Artist: {artist}");
+        }
 
-        return data?.Albums.Items.FirstOrDefault();
+        return data.Albums.Items.FirstOrDefault();
+    }
+
+    private string CreateSearchUrl(string albumName, string artist)
+    {
+        var query = new StringBuilder();
+        query.Append($"artist:\"{artist}\"");
+        query.Append(' ');
+        query.Append($"album:\"{albumName}\"");
+
+        var queryString = HttpUtility.ParseQueryString(string.Empty);
+        queryString["q"] = query.ToString();
+        queryString["type"] = "album";
+        return queryString.ToString()!;
     }
 }
