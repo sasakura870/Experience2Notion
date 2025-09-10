@@ -37,21 +37,6 @@ public partial class NotionClient
         LoadProperties();
     }
 
-    public void LoadProperties()
-    {
-        _logger.LogInformation("Notionのデータベースのプロパティを取得します。");
-        var response = _client.GetAsync(_getDbSchmeUrl).Result;
-        var json = response.Content.ReadAsStringAsync().Result;
-        var dbResponse = JsonSerializer.Deserialize<NotionDatabaseResponse>(json);
-        response.EnsureSuccessStatusCode();
-
-        var hoge = dbResponse!.Properties[Consts.AuthorKey];
-        _authors = [.. dbResponse!.Properties[Consts.AuthorKey].MultiSelect!.Options];
-        _notStartStatus = dbResponse!.Properties[Consts.StatusKey].Status!.Options.First(s => s.Name == "未着手");
-        _genres = [.. dbResponse!.Properties[Consts.GenreKey].Select!.Options];
-        _logger.LogInformation("Notionのデータベースのプロパティを取得しました。");
-    }
-
     public async Task<string> UploadImageAsync(string imageName, byte[] imageData, string mime)
     {
         var fileUploadId = await CreateFileUploadAsync(imageName, mime);
@@ -73,9 +58,52 @@ public partial class NotionClient
 
     public async Task<CreatePageResponse> CreateBookPageAsync(string title, IList<string> authors, string link, string publishedDate, string imageId)
     {
-        _logger.LogInformation($"Notionにページを作成します。");
-        var bookGenre = _genres.First(g => g.Name == "書籍");
+        _logger.LogInformation($"Notionに書籍ページを作成します。");
+        var payload = CreateNotionPagePayload(title, "書籍", [.. authors], link, publishedDate, imageId);
+        var jsonPayload = JsonSerializer.Serialize(payload);
+        var content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json);
+        var response = await _client.PostAsync(_createPagesUrl, content);
+        response.EnsureSuccessStatusCode();
+        _logger.LogInformation($"Notionのページを作成しました。");
+        _logger.LogInformation("タイトル: {Title}", title);
+        _logger.LogInformation("著者: {Authors}", string.Join(", ", authors));
+        _logger.LogInformation("リンク: {Link}", link);
+        if (DatetimeRegex().IsMatch(publishedDate))
+        {
+            _logger.LogInformation("発売日: {PublishedDate}", publishedDate);
+        }
+        var jsonRes = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<CreatePageResponse>(jsonRes)!;
+    }
+
+    public async Task<CreatePageResponse> CreateMusicAlbumPageAsync(string title, string artist, string link, string releaseDate, string imageId)
+    {
+        _logger.LogInformation($"Notionに音楽アルバムページを作成します。");
+        var payload = CreateNotionPagePayload(title, "音楽アルバム", [artist], link, releaseDate, imageId);
+        var jsonPayload = JsonSerializer.Serialize(payload);
+        var content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json);
+        var response = await _client.PostAsync(_createPagesUrl, content);
+        response.EnsureSuccessStatusCode();
+        _logger.LogInformation($"Notionのページを作成しました。");
+        _logger.LogInformation("タイトル: {Title}", title);
+        _logger.LogInformation("アーティスト {Artist}", artist);
+        _logger.LogInformation("リンク: {Link}", link);
+        _logger.LogInformation("発売日: {ReleaseDate}", releaseDate);
+        var jsonRes = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<CreatePageResponse>(jsonRes)!;
+    }
+
+    private NotionPageCreate CreateNotionPagePayload(string title, string genre, string[] authors, string link, string publishedDate, string imageId)
+    {
+        var genreOption = _genres.First(g => g.Name == genre);
+        var IconUrl = genre switch
+        {
+            "書籍" => Consts.BookIconUrl,
+            "音楽アルバム" => Consts.MusicIconUrl,
+            _ => ""
+        };
         var authorOptions = authors.Select(author => _authors.FirstOrDefault(a => a.Name == author) ?? new SelectOption { Name = author }).ToList();
+
         var payload = new NotionPageCreate
         {
             Parent = new Parent { DatabaseId = _databaseId },
@@ -84,7 +112,7 @@ public partial class NotionClient
                 Type = "external",
                 External = new ExternalFile
                 {
-                    Url = Consts.BookIconUrl
+                    Url = IconUrl
                 }
             },
             Properties = new PageProperties
@@ -112,7 +140,7 @@ public partial class NotionClient
                 },
                 Genre = new SelectValueByPage
                 {
-                    Select = bookGenre
+                    Select = genreOption
                 },
             },
             Children =
@@ -144,21 +172,24 @@ public partial class NotionClient
                 }
             };
         }
-        var jsonPayload = JsonSerializer.Serialize(payload);
-        var content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json);
-        var response = await _client.PostAsync(_createPagesUrl, content);
-        response.EnsureSuccessStatusCode();
-        _logger.LogInformation($"Notionのページを作成しました。");
-        _logger.LogInformation("タイトル: {Title}", title);
-        _logger.LogInformation("著者: {Authors}", string.Join(", ", authors));
-        _logger.LogInformation("リンク: {Link}", link);
-        if (DatetimeRegex().IsMatch(publishedDate))
-        {
-            _logger.LogInformation("発売日: {PublishedDate}", publishedDate);
-        }
-        var jsonRes = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<CreatePageResponse>(jsonRes)!;
+        return payload;
     }
+
+    private void LoadProperties()
+    {
+        _logger.LogInformation("Notionのデータベースのプロパティを取得します。");
+        var response = _client.GetAsync(_getDbSchmeUrl).Result;
+        var json = response.Content.ReadAsStringAsync().Result;
+        var dbResponse = JsonSerializer.Deserialize<NotionDatabaseResponse>(json);
+        response.EnsureSuccessStatusCode();
+
+        var hoge = dbResponse!.Properties[Consts.AuthorKey];
+        _authors = [.. dbResponse!.Properties[Consts.AuthorKey].MultiSelect!.Options];
+        _notStartStatus = dbResponse!.Properties[Consts.StatusKey].Status!.Options.First(s => s.Name == "未着手");
+        _genres = [.. dbResponse!.Properties[Consts.GenreKey].Select!.Options];
+        _logger.LogInformation("Notionのデータベースのプロパティを取得しました。");
+    }
+
 
     private async Task<string> CreateFileUploadAsync(string imageName, string mime)
     {
