@@ -4,13 +4,13 @@ using Google.Apis.Services;
 using Microsoft.Extensions.Logging;
 
 namespace Experience2Notion.Services;
-public class GoogleImageSearcher
+public class GoogleEngineSearcher
 {
-    readonly ILogger<GoogleImageSearcher> _logger;
+    readonly ILogger<GoogleEngineSearcher> _logger;
     readonly CustomSearchAPIService _searcher;
     readonly string _cx;
 
-    public GoogleImageSearcher(ILogger<GoogleImageSearcher> logger)
+    public GoogleEngineSearcher(ILogger<GoogleEngineSearcher> logger)
     {
         _logger = logger;
         var apiKey = Environment.GetEnvironmentVariable("GOOGLE_CUSTOM_SEARCH_API_KEY");
