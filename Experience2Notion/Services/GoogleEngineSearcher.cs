@@ -38,4 +38,18 @@ public class GoogleEngineSearcher
         _logger.LogInformation("画像を取得しました。URL: {Url}", url);
         return (byteData, resultItem.Mime);
     }
+
+    public async Task<string> GetFirstLinkAsync(string query)
+    {
+        _logger.LogInformation("ウェブ検索を開始します。クエリ: {Query}", query);
+        var listRequest = _searcher.Cse.List();
+        listRequest.Q = query;
+        listRequest.Cx = _cx;
+        listRequest.Num = 1;
+        var search = await listRequest.ExecuteAsync();
+        var resultItem = (search.Items?.FirstOrDefault()) ?? throw new Experience2NotionException($"指定されたクエリ「{query}」のリンクが見つかりませんでした。");
+        var url = resultItem.Link;
+        _logger.LogInformation("リンクを取得しました。URL: {Url}", url);
+        return url;
+    }
 }
