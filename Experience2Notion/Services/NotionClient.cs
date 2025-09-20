@@ -59,7 +59,7 @@ public partial class NotionClient
     public async Task<CreatePageResponse> CreateBookPageAsync(string title, IEnumerable<string> authors, string link, string publishedDate, string imageId)
     {
         _logger.LogInformation($"Notionに書籍ページを作成します。");
-        var payload = CreateNotionPagePayload(title, "書籍", [.. authors], link, publishedDate, imageId);
+        var payload = CreateNotionPagePayload(title, "書籍", [.. authors], link, publishedDate, [imageId]);
         var jsonPayload = JsonSerializer.Serialize(payload);
         var content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json);
         var response = await _client.PostAsync(_createPagesUrl, content);
@@ -79,7 +79,7 @@ public partial class NotionClient
     public async Task<CreatePageResponse> CreateMusicAlbumPageAsync(string title, IEnumerable<string> artists, string link, string releaseDate, string imageId)
     {
         _logger.LogInformation($"Notionに音楽アルバムページを作成します。");
-        var payload = CreateNotionPagePayload(title, "音楽アルバム", [.. artists], link, releaseDate, imageId);
+        var payload = CreateNotionPagePayload(title, "音楽アルバム", [.. artists], link, releaseDate, [imageId]);
         var jsonPayload = JsonSerializer.Serialize(payload);
         var content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json);
         var response = await _client.PostAsync(_createPagesUrl, content);
@@ -93,13 +93,14 @@ public partial class NotionClient
         return JsonSerializer.Deserialize<CreatePageResponse>(jsonRes)!;
     }
 
-    private NotionPageCreate CreateNotionPagePayload(string title, string genre, IEnumerable<string> authors, string link, string publishedDate, string imageId)
+    private NotionPageCreate CreateNotionPagePayload(string title, string genre, IEnumerable<string> authors, string link, string publishedDate, IEnumerable<string> imageIds)
     {
         var genreOption = _genres.First(g => g.Name == genre);
         var IconUrl = genre switch
         {
             "書籍" => Consts.BookIconUrl,
             "音楽アルバム" => Consts.MusicIconUrl,
+            "飲食店" => Consts.RestaurantIconUrl,
             _ => ""
         };
         var authorOptions = authors.Select(author => _authors.FirstOrDefault(a => a.Name == author) ?? new SelectOption { Name = author }).ToList();
@@ -126,10 +127,6 @@ public partial class NotionClient
                         }
                     ]
                 },
-                Authors = new MultiSelectValueByPage
-                {
-                    MultiSelect = authorOptions
-                },
                 Link = new UrlValueByPage
                 {
                     Url = link
@@ -143,8 +140,7 @@ public partial class NotionClient
                     Select = genreOption
                 },
             },
-            Children =
-            [
+            Children = [.. imageIds.Select(imageid => new List<BlockBase> ([
                 new ParagraphBlock {
                     Paragraph = new ParagraphContent{
                         RichText = []
@@ -156,21 +152,48 @@ public partial class NotionClient
                     {
                         Type = "file_upload",
                         FileUpload = new FileUploadContent{
-                            Id = imageId
+                            Id = imageid
                         }
                     }
                 }
-            ]
+                ])).SelectMany(block => block)]
         };
+        if (authorOptions.Count != 0)
+        {
+            payload.Properties.Authors = new MultiSelectValueByPage
+            {
+                MultiSelect = authorOptions
+            };
+        }
         if (DatetimeRegex().IsMatch(publishedDate))
         {
-            payload.Properties.PublishedDate = new DateValueByPage
+            if (genre == "飲食店")
             {
-                Date = new DateValue
+                payload.Properties.StartedDate = new DateValueByPage
                 {
-                    Start = publishedDate
-                }
-            };
+                    Date = new DateValue
+                    {
+                        Start = publishedDate,
+                    }
+                };
+                payload.Properties.CompletedDate = new DateValueByPage
+                {
+                    Date = new DateValue
+                    {
+                        Start = publishedDate,
+                    }
+                };
+            }
+            else
+            {
+                payload.Properties.PublishedDate = new DateValueByPage
+                {
+                    Date = new DateValue
+                    {
+                        Start = publishedDate,
+                    }
+                };
+            }
         }
         return payload;
     }
