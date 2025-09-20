@@ -86,9 +86,26 @@ public partial class NotionClient
         response.EnsureSuccessStatusCode();
         _logger.LogInformation($"Notionのページを作成しました。");
         _logger.LogInformation("タイトル: {Title}", title);
-        _logger.LogInformation("アーティスト {Artist}", string.Join(", ", artists));
+        _logger.LogInformation("アーティスト: {Artist}", string.Join(", ", artists));
         _logger.LogInformation("リンク: {Link}", link);
         _logger.LogInformation("発売日: {ReleaseDate}", releaseDate);
+        var jsonRes = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<CreatePageResponse>(jsonRes)!;
+    }
+
+    public async Task<CreatePageResponse> CreateRestaurantPageAsync(string name, string address, string link, string visitedAt, IEnumerable<string> imageIds)
+    {
+        _logger.LogInformation($"Notionに飲食店ページを作成します。");
+        var payload = CreateNotionPagePayload(name, "飲食店", [], link, visitedAt, imageIds);
+        var jsonPayload = JsonSerializer.Serialize(payload);
+        var content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json);
+        var response = await _client.PostAsync(_createPagesUrl, content);
+        response.EnsureSuccessStatusCode();
+        _logger.LogInformation($"Notionのページを作成しました。");
+        _logger.LogInformation("店名: {Name}", name);
+        _logger.LogInformation("住所: {Address}", address);
+        _logger.LogInformation("リンク: {Link}", link);
+        _logger.LogInformation("訪問日: {VisitedAt}", visitedAt);
         var jsonRes = await response.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<CreatePageResponse>(jsonRes)!;
     }
