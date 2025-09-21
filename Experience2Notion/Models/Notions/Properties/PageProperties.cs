@@ -31,6 +31,10 @@ public class PageProperties
     [JsonPropertyName("発売日")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public DateValueByPage? PublishedDate { get; set; }
+
+    [JsonPropertyName("場所")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public RichTextValueByPage? Place { get; set; }
 }
 
 public class MultiSelectValueByPage
@@ -61,4 +65,10 @@ public class DateValueByPage
 {
     [JsonPropertyName("date")]
     public DateValue Date { get; set; } = new();
+}
+
+public class RichTextValueByPage
+{
+    [JsonPropertyName("rich_text")]
+    public TextObject[] RichText { get; set; } = [];
 }

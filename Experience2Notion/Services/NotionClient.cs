@@ -96,7 +96,7 @@ public partial class NotionClient
     public async Task<CreatePageResponse> CreateRestaurantPageAsync(string name, string address, string link, string visitedAt, IEnumerable<string> imageIds)
     {
         _logger.LogInformation($"Notionに飲食店ページを作成します。");
-        var payload = CreateNotionPagePayload(name, "飲食店", [], link, visitedAt, imageIds);
+        var payload = CreateNotionPagePayload(name, "飲食店", [], link, visitedAt, imageIds, address);
         var jsonPayload = JsonSerializer.Serialize(payload);
         var content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json);
         var response = await _client.PostAsync(_createPagesUrl, content);
@@ -110,7 +110,7 @@ public partial class NotionClient
         return JsonSerializer.Deserialize<CreatePageResponse>(jsonRes)!;
     }
 
-    private NotionPageCreate CreateNotionPagePayload(string title, string genre, IEnumerable<string> authors, string link, string publishedDate, IEnumerable<string> imageIds)
+    private NotionPageCreate CreateNotionPagePayload(string title, string genre, IEnumerable<string> authors, string link, string publishedDate, IEnumerable<string> imageIds, string address = "")
     {
         var genreOption = _genres.First(g => g.Name == genre);
         var IconUrl = genre switch
@@ -211,6 +211,18 @@ public partial class NotionClient
                     }
                 };
             }
+        }
+        if (!string.IsNullOrWhiteSpace(address))
+        {
+            payload.Properties.Place = new RichTextValueByPage
+            {
+                RichText = [
+                    new TextObject
+                    {
+                        Text = new TextContent { Content = address }
+                    }
+                ]
+            };
         }
         return payload;
     }
