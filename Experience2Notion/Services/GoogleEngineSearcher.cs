@@ -1,5 +1,6 @@
 ﻿using Experience2Notion.Exceptions;
 using Google.Apis.CustomSearchAPI.v1;
+using Google.Apis.CustomSearchAPI.v1.Data;
 using Google.Apis.Services;
 using Microsoft.Extensions.Logging;
 
@@ -39,17 +40,16 @@ public class GoogleEngineSearcher
         return (byteData, resultItem.Mime);
     }
 
-    public async Task<string> GetFirstLinkAsync(string query)
+    public async Task<IList<Result>> GetSearchResultAsync(string query)
     {
         _logger.LogInformation("ウェブ検索を開始します。クエリ: {Query}", query);
         var listRequest = _searcher.Cse.List();
         listRequest.Q = query;
         listRequest.Cx = _cx;
-        listRequest.Num = 1;
+        listRequest.Num = 10;
         var search = await listRequest.ExecuteAsync();
-        var resultItem = (search.Items?.FirstOrDefault()) ?? throw new Experience2NotionException($"指定されたクエリ「{query}」のリンクが見つかりませんでした。");
-        var url = resultItem.Link;
-        _logger.LogInformation("リンクを取得しました。URL: {Url}", url);
-        return url;
+        var results = search.Items ?? throw new Experience2NotionException($"指定されたクエリ「{query}」の検索結果が見つかりませんでした。");
+        _logger.LogInformation("検索結果を取得しました。");
+        return results;
     }
 }
