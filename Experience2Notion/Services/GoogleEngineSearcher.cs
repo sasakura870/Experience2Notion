@@ -9,7 +9,8 @@ public class GoogleEngineSearcher
 {
     readonly ILogger<GoogleEngineSearcher> _logger;
     readonly CustomSearchAPIService _searcher;
-    readonly string _cx;
+    readonly string _imageCx;
+    readonly string _basicCx;
 
     public GoogleEngineSearcher(ILogger<GoogleEngineSearcher> logger)
     {
@@ -20,7 +21,8 @@ public class GoogleEngineSearcher
             ApiKey = apiKey,
             ApplicationName = "Experience2Notion"
         });
-        _cx = Environment.GetEnvironmentVariable("GOOGLE_CUSTOM_SEARCH_ENGINE_ID") ?? throw new ArgumentException("Google Custom Searchの検索エンジンIDが指定されていません。");
+        _imageCx = Environment.GetEnvironmentVariable("GOOGLE_CUSTOM_SEARCH_IMAGE_ENGINE_ID") ?? throw new ArgumentException("Google Custom Searchの画像検索エンジンIDが指定されていません。");
+        _basicCx = Environment.GetEnvironmentVariable("GOOGLE_CUSTOM_SEARCH_BASIC_ENGINE_ID") ?? throw new ArgumentException("Google Custom Searchの検索エンジンIDが指定されていません。");
     }
 
     public async Task<(byte[], string)> DownloadImageAsync(string query)
@@ -28,7 +30,7 @@ public class GoogleEngineSearcher
         _logger.LogInformation("画像検索を開始します。クエリ: {Query}", query);
         var listRequest = _searcher.Cse.List();
         listRequest.Q = query;
-        listRequest.Cx = _cx;
+        listRequest.Cx = _imageCx;
         listRequest.SearchType = CseResource.ListRequest.SearchTypeEnum.Image;
         listRequest.Num = 1;
         var search = await listRequest.ExecuteAsync();
@@ -40,13 +42,15 @@ public class GoogleEngineSearcher
         return (byteData, resultItem.Mime);
     }
 
-    public async Task<IList<Result>> GetSearchResultAsync(string query)
+    public async Task<IList<Result>> GetSearchResultAsync(string query, int pageNumber = 1)
     {
-        _logger.LogInformation("ウェブ検索を開始します。クエリ: {Query}", query);
+        _logger.LogInformation("ウェブ検索を開始します。クエリ: {Query}, ページ: {PageNumber}", query, pageNumber);
         var listRequest = _searcher.Cse.List();
         listRequest.Q = query;
-        listRequest.Cx = _cx;
+        listRequest.Cx = _basicCx;
+        listRequest.SearchType = CseResource.ListRequest.SearchTypeEnum.SearchTypeUndefined;
         listRequest.Num = 10;
+        listRequest.Start = (pageNumber - 1) * listRequest.Num + 1;
         var search = await listRequest.ExecuteAsync();
         var results = search.Items ?? throw new Experience2NotionException($"指定されたクエリ「{query}」の検索結果が見つかりませんでした。");
         _logger.LogInformation("検索結果を取得しました。");
