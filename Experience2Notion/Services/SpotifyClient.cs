@@ -6,6 +6,7 @@ using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using System.Web;
+using MusicAlbum = Experience2Notion.Models.MusicAlbums.Album;
 
 namespace Experience2Notion.Services;
 public class SpotifyClient
@@ -46,7 +47,7 @@ public class SpotifyClient
         return json.RootElement.GetProperty("access_token").GetString()!;
     }
 
-    public async Task<Album?> SearchAlbumAsync(string albumName, string artist)
+    public async Task<MusicAlbum?> SearchAlbumAsync(string albumName, string artist)
     {
         _logger.LogInformation("Spotifyから音楽アルバムを検索します。アルバム名: {AlbumName}, アーティスト: {Artist}", albumName, artist);
         if (albumName.EndsWith(_singleSuffix, StringComparison.OrdinalIgnoreCase))
@@ -69,9 +70,9 @@ public class SpotifyClient
             throw new Experience2NotionException($"アルバムが見つかりませんでした。アルバム名: {albumName}, アーティスト: {artist}");
         }
 
-        var targetAlbum = data.Albums.Items.FirstOrDefault()!;
+        var targetAlbum = data.Albums.Items.FirstOrDefault()!.ToAlbum();
         _logger.LogInformation("アルバムが見つかりました。" +
-            "アルバム名: {AlbumName}, アーティスト: {Artist}, Spotify URL: {Url}", targetAlbum.Name, string.Join(", ", targetAlbum.Artists.Select(a => a.Name)), targetAlbum.ExternalUrl);
+            "アルバム名: {AlbumName}, アーティスト: {Artist}, URL: {Url}", targetAlbum.Name, string.Join(", ", targetAlbum.Artists.Select(a => a.Name)), targetAlbum.ExternalUrl);
         return targetAlbum;
     }
 

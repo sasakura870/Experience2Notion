@@ -18,5 +18,35 @@ public class Album
     [JsonPropertyName("release_date")]
     public string ReleaseDate { get; set; } = string.Empty;
 
-    public string ExternalUrl => $"https://open.spotify.com/album/{Id}";
+    [JsonPropertyName("external_urls")]
+    public SpotifyExternalUrls ExternalUrls { get; set; } = new();
+
+    public string ExternalUrl { get; set; } = string.Empty;
+
+    public Experience2Notion.Models.MusicAlbums.Album ToAlbum()
+    {
+        return new Experience2Notion.Models.MusicAlbums.Album
+        {
+            Id = Id,
+            Name = Name,
+            Artists = Artists.Select(artist => new Experience2Notion.Models.MusicAlbums.Artist
+            {
+                Name = artist.Name,
+            }).ToList(),
+            Images = Images.Select(image => new Experience2Notion.Models.MusicAlbums.Image
+            {
+                Url = image.Url,
+                Height = image.Height,
+                Width = image.Width,
+            }).ToList(),
+            ReleaseDate = ReleaseDate,
+            ExternalUrl = string.IsNullOrWhiteSpace(ExternalUrl) ? ExternalUrls.Spotify : ExternalUrl,
+        };
+    }
+}
+
+public class SpotifyExternalUrls
+{
+    [JsonPropertyName("spotify")]
+    public string Spotify { get; set; } = string.Empty;
 }
