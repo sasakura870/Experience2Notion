@@ -35,7 +35,8 @@ public class BraveSearchClient
         var qs = HttpUtility.ParseQueryString(string.Empty);
         qs["q"] = query;
         qs["country"] = "JP";
-        qs["search_lang"] = "ja";
+        // Brave Search API の日本語の言語コードは ISO 639-1 の "ja" ではなく "jp"
+        qs["search_lang"] = "jp";
         qs["ui_lang"] = "ja-JP";
         qs["count"] = count.ToString();
         qs["offset"] = offset.ToString();
