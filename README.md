@@ -31,6 +31,7 @@ Experience2Notion は、個人の Notion データベースに感想ページを
 - `SpotifyClient`: Spotify で音楽アルバムを検索する。
 - `MusicAlbumSearchClient`: MusicBrainz と Cover Art Archive で音楽アルバム情報を検索する。
 - `GoogleEngineSearcher`: Google Custom Search でウェブ検索と画像検索を行う。
+- `BraveSearchClient`: Brave Search API でウェブ検索を行う。
 
 ## Notion データベースの前提
 
@@ -60,6 +61,7 @@ Experience2Notion は、個人の Notion データベースに感想ページを
 - `GOOGLE_CUSTOM_SEARCH_BASIC_ENGINE_ID`
 - `SPOTIFY_CLIENT_ID`
 - `SPOTIFY_CLIENT_SECRET`
+- `BRAVE_SEARCH_API_KEY`
 
 ## ビルド
 
